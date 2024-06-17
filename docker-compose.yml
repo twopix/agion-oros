@@ -13,6 +13,7 @@ services:
             - './:/opt/apps/laravel/'
             - './www.conf:/usr/local/etc/php-fpm.d/www.conf'
             - './php.ini:/usr/local/etc/php/php.ini'
+            - storage:/opt/apps/laravel/storage/app/public
         networks:
             - agion-oros
     agion-web:
@@ -27,6 +28,7 @@ services:
             FPM_HOST: "agion-fpm:9000"
         volumes:
             - './nginx.conf.template:/etc/nginx/templates/default.conf.template'
+            - storage:/opt/apps/laravel/storage/app/public
         networks:
             - agion-oros
         
@@ -41,6 +43,7 @@ services:
         volumes:
             - './www.conf:/usr/local/etc/php-fpm.d/www.conf'
             - './php.ini:/usr/local/etc/php/php.ini'
+            - storage:/opt/apps/laravel/storage/app/public
         networks:
             - agion-oros
 
@@ -48,3 +51,7 @@ networks:
     agion-oros:
         external:
             name: agion-oros
+
+volumes:
+    storage:
+        driver: local            

@@ -17,11 +17,19 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Providers\Plugin\TypesPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $translations = config('filament-translations.locals');
+        $locals = [];
+        foreach ($translations as $key => $value) {
+            $locals[] = $key;
+        }
+        unset($translations);
+
         return $panel
             ->default()
             ->id('admin')
@@ -59,11 +67,11 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(\TomatoPHP\FilamentTranslations\FilamentTranslationsPlugin::make()->allowClearTranslations())
             ->plugin(\TomatoPHP\FilamentTranslations\FilamentTranslationsSwitcherPlugin::make())
             ->plugin(\TomatoPHP\FilamentBrowser\FilamentBrowserPlugin::make())
-            ->plugin( \Filament\SpatieLaravelTranslatablePlugin::make()->defaultLocales(config('language.list')))
+            ->plugin( \Filament\SpatieLaravelTranslatablePlugin::make()->defaultLocales($locals))
             // ->plugin(\TomatoPHP\FilamentMenus\FilamentMenusPlugin::make())
             ->plugin(\TomatoPHP\FilamentSettingsHub\FilamentSettingsHubPlugin::make())
             ->plugin(\TomatoPHP\FilamentLocations\FilamentLocationsPlugin::make())
-            ->plugin(\TomatoPHP\FilamentTypes\FilamentTypesPlugin::make())
+            ->plugin(TypesPlugin::make())
             ->plugin(\TomatoPHP\FilamentPlugins\FilamentPluginsPlugin::make())
             ->plugin(\TomatoPHP\FilamentWallet\FilamentWalletPlugin::make());
     }

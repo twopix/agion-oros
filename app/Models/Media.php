@@ -25,7 +25,14 @@ class Media extends Model implements HasMedia
         'order_column',
         'created_at',
         'updated_at',
-        'file_path'
+        'file_path',
+
+        'model_type',
+        'model_id',
+        'manipulations',
+        'custom_properties',
+        'generated_conversions',
+        'responsive_images'
     ];
 
     protected $casts = [

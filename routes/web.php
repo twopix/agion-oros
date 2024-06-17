@@ -8,3 +8,7 @@ Route::post('/trix-image-upload', [TrixImageUploadController::class, 'store'])->
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/admin/dashboard', function () {
+    return redirect('/admin');
+});

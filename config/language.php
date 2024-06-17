@@ -2,9 +2,9 @@
 return [
     'lang' => [
         'EN' => 'en',
-        'GR' => 'gr',
+        'EL' => 'gr',
         'RU' => 'ru',
     ],
 
-    'list' => ['en', 'gr', 'ru'],
+    'list' => ['en', 'el', 'ru'],
 ];

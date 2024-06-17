@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+echo "======= Clear Cache ======="
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+
+echo "======= Optimize ======="
+php artisan optimize
+
+echo "======= Set permissions for storage ======="
+chmod 777 -R storage
+
+echo "======= Migrate ======="
+php artisan migrate --force
+
+echo "======= Swagger ======="
+php artisan l5-swagger:generate
+
+echo "======= Start PHP-FPM ======="
+exec php-fpm

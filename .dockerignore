@@ -1,0 +1,6 @@
+Dockerfile
+docker*
+.env*
+.git*
+.devcontainer
+chart

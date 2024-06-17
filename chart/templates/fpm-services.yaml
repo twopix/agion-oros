@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app }}-fpm
+spec:
+  selector:
+    app: {{ .Values.app }}-fpm
+  ports:
+    {{- .Values.fpm.service | toYaml | nindent 4 }}                               

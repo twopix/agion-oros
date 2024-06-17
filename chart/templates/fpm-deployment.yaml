@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app }}-fpm
+  labels:
+    app: {{ .Values.app }}-fpm
+    type: {{ .Values.app }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app }}-fpm
+      type: {{ .Values.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app }}-fpm
+        type: {{ .Values.app }}
+      annotations:
+        app: {{ .Values.app }}-fpm
+    spec:  
+      volumes:
+        - name: fpm-config-volume
+          configMap:
+            name: {{ .Values.app }}-fpm-files
+            items:
+            - key: www.conf
+              path: www.conf
+        - name: start-fpm-config-volume
+          configMap:
+            name: {{ .Values.app }}-fpm-files
+            items:
+            - key: start-fpm
+              path: start-fpm
+        - name: phpini-config-volume
+          configMap:
+            name: {{ .Values.app }}-fpm-files
+            items:
+            - key: php.ini
+              path: php.ini
+        # - name: env
+        #   configMap:
+        #     name: {{ .Values.app }}-fpm-files
+        #     items:
+        #     - key: env
+        #       path: .env
+      containers:
+      - name: {{ .Values.app }}-fpm
+        image: {{ .Values.fpm.image }}
+        imagePullPolicy: {{ .Values.fpm.imagePullPolicy }}
+        command: ["sh", "-c", "cp /tmp/laravel/start-fpm /opt/apps/laravel/start-fpm && chmod 777 /opt/apps/laravel/start-fpm && /opt/apps/laravel/start-fpm"]
+        ports:
+          {{- range .Values.fpm.service }}
+          - name: {{ .name }}
+            containerPort: {{ .targetPort }}         
+          {{- end }}
+        envFrom:
+          - configMapRef:
+              name: {{ .Values.app }}-fpm-env
+        env:
+          - name: TIMESTAMP
+            value: "{{ now | date "20060102150405" }}"     
+        resources:
+            {{- .Values.fpm.resources | toYaml | nindent 12 }}                               
+        volumeMounts:        
+        - name: fpm-config-volume
+          mountPath: /usr/local/etc/php-fpm.d/www.conf
+          subPath: www.conf        
+        - name: start-fpm-config-volume
+          mountPath: /tmp/laravel/start-fpm
+          subPath: start-fpm        
+        - name: phpini-config-volume
+          mountPath: /usr/local/etc/php/php.ini
+          subPath: php.ini
+        # - name: env
+        #   mountPath: /opt/apps/laravel/.env
+        #   subPath: .env
+      - name: {{ .Values.app }}-fpm-metrics-exporter
+        image: hipages/php-fpm_exporter:2
+        imagePullPolicy: IfNotPresent
+        ports:
+          {{- range .Values.fpm.metrics }}
+          - name: {{ .name }}
+            containerPort: {{ .targetPort }}         
+          {{- end }}
+        env:
+          - name: PHP_FPM_SCRAPE_URI
+            value: "tcp://localhost:9000/status"
+          - name: PHP_FPM_FIX_PROCESS_COUNT
+            value: "true"
+          - name: PHP_FPM_LOG_LEVEL
+            value: "info"
+          - name: TIMESTAMP
+            value: "{{ now | date "20060102150405" }}"   
+        resources:
+          limits:
+            cpu: 40m
+            memory: 32Mi
+          requests:
+            cpu: 40m
+            memory: 32Mi

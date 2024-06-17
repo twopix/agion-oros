@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app }}-fpm-files
+data:
+  www.conf: |-
+{{ printf "files/www.conf" | .Files.Get | indent 4 }}
+  php.ini: |-
+{{ printf "files/php.ini" | .Files.Get | indent 4 }}
+  start-fpm: |-
+{{ printf "files/start-fpm" | .Files.Get | indent 4 }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app }}-fpm-env
+data:
+{{- range $key, $value := .Values.environment }}
+  {{ $key }}: {{ quote $value }}
+{{- end }}

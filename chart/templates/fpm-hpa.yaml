@@ -1,0 +1,34 @@
+{{- if .Values.fpm.hpa.enabled -}}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.app }}-fpm-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.app }}-fpm
+  minReplicas: {{ .Values.fpm.hpa.minReplicas }}
+  maxReplicas: {{ .Values.fpm.hpa.maxReplicas }}
+  behavior:
+    scaleDown:
+        stabilizationWindowSeconds: 60
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+        stabilizationWindowSeconds: 0
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 15
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: phpfpm_process_utilization
+        target:
+          type: AverageValue
+          averageValue: {{ .Values.fpm.hpa.AverageValue }}
+{{- end -}}

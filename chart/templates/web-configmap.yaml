@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app }}-web-files
+data:
+  nginx.conf.template: |-
+{{ printf "files/nginx.conf.template" | .Files.Get | indent 4 }}

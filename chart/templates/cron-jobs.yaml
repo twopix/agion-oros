@@ -1,0 +1,80 @@
+
+{{- range .Values.cron.cronjobs }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $.Values.app }}-cron-{{ .name }}
+  labels:
+    app: {{ $.Values.app }}-cron
+    type: {{ $.Values.app }}
+    cron: {{ .name }}
+spec:
+  schedule: "{{ .schedule }}"
+  successfulJobsHistoryLimit: {{ $.Values.cron.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ $.Values.cron.failedJobsHistoryLimit }}
+  concurrencyPolicy: {{ $.Values.cron.concurrencyPolicy }}
+  jobTemplate:
+    spec:  
+      parallelism: {{ $.Values.cron.parallelism }}
+      backoffLimit: {{ $.Values.cron.backoffLimit }}
+      template:
+        metadata:
+          labels:
+            app: {{ $.Values.app }}-cron
+            type: {{ $.Values.app }}
+            cron: {{ .name }}
+        spec:
+          {{- if $.Values.cron.nodeAffinity.enabled }}
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                {{- range $.Values.cron.nodeAffinity.nodeSelectors }}
+                  - matchExpressions:
+                    - key: {{ .key }}
+                      operator: {{ .operator }}
+                      values:
+                      {{- range .values }}
+                        - {{ . }}
+                      {{- end }}
+                {{- end }}
+          {{- end }}
+          volumes:
+            - name: phpini-config-volume
+              configMap:
+                name: {{ $.Values.app }}-fpm-files
+                items:
+                - key: php.ini
+                  path: php.ini
+            - name: fpm-config-volume
+              configMap:
+                name: {{ $.Values.app }}-fpm-files
+                items:
+                - key: www.conf
+                  path: www.conf
+          restartPolicy: {{ $.Values.cron.restartPolicy }} 
+          containers:
+          - name: {{ $.Values.app }}-cron-{{ .name }}
+            image: {{ $.Values.cron.image }}
+            imagePullPolicy: {{ $.Values.cron.imagePullPolicy }}
+            command: ["/bin/sh","-c"]
+            args: {{ .args }}
+            resources:
+              {{- $.Values.cron.resources | toYaml | nindent 14 }}                               
+            volumeMounts:        
+            - name: fpm-config-volume
+              mountPath: /usr/local/etc/php-fpm.d/www.conf
+              subPath: www.conf               
+            - name: phpini-config-volume
+              mountPath: /usr/local/etc/php/php.ini
+              subPath: php.ini
+            envFrom:
+              - configMapRef:
+                  name: {{ $.Values.app }}-fpm-env
+            env:
+            - name: TIMESTAMP
+              value: "{{ now | date "20060102150405" }}"   
+
+---
+
+{{- end }}

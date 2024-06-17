@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+    agion-fpm:
+        build:
+            context: .
+            target: fpm
+            args:
+              DOCKER_BUILDKIT: 1
+        image: agion/fpm
+        container_name: agion-fpm
+        env_file: .env
+        volumes:
+            - './:/opt/apps/laravel/'
+            - './www.conf:/usr/local/etc/php-fpm.d/www.conf'
+            - './php.ini:/usr/local/etc/php/php.ini'
+        networks:
+            - agion-oros
+    agion-web:
+        build:
+            context: .
+            target: web
+        image: agion/web
+        container_name: agion-web
+        ports:
+            - '8084:80'
+        environment:
+            FPM_HOST: "agion-fpm:9000"
+        volumes:
+            - './nginx.conf.template:/etc/nginx/templates/default.conf.template'
+        networks:
+            - agion-oros
+        
+    # Run the Laravel Scheduler
+    agion-cron:
+        build:
+            context: .
+            target: cron
+        container_name: agion-cron
+        image: agion/cron
+        env_file: .env
+        volumes:
+            - './www.conf:/usr/local/etc/php-fpm.d/www.conf'
+            - './php.ini:/usr/local/etc/php/php.ini'
+        networks:
+            - agion-oros
+
+networks:
+    agion-oros:
+        external:
+            name: agion-oros

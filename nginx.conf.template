@@ -1,0 +1,77 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+#    listen 443 ssl;
+#    ssl_certificate     /opt/apps/laravel/public/ssl.crt;
+#    ssl_certificate_key  /opt/apps/laravel/public/ssl.key;
+    charset utf-8;
+    # We need to set the root for our sevrer,
+    # so any static file requests gets loaded from the correct path
+    root /opt/apps/laravel/public;
+
+    index index.php index.html index.htm index.nginx-debian.html;
+
+    # _ makes sure that nginx does not try to map requests to a specific hostname
+    # This allows us to specify the urls to our application as infrastructure changes,
+    # without needing to change the application
+    server_name _;
+
+    # At the root location,
+    # we first check if there are any static files at the location, and serve those,
+    # If not, we check whether there is an indexable folder which can be served,
+    # Otherwise we forward the request to the PHP server
+    location / {
+        # Using try_files here is quite important as a security concideration
+        # to prevent injecting PHP code as static assets,
+        # and then executing them via a URL.
+        # See https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/#passing-uncontrolled-requests-to-php
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Some static assets are loaded on every page load,
+    # and logging these turns into a lot of useless logs.
+    # If you would prefer to see these requests for catching 404's etc.
+    # Feel free to remove them
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    location ~* ^.+\.(woff2|css|ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|rss|atom|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf|webp)$ {
+            access_log off;
+            log_not_found off;
+            expires max;
+    }
+
+    # When a 404 is returned, we want to display our applications 404 page,
+    # so we redirect it to index.php to load the correct page
+    # error_page 404 /index.php;
+
+    # Whenever we receive a PHP url, or our root location block gets to serving through fpm,
+    # we want to pass the request to FPM for processing
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass ${FPM_HOST};
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+        fastcgi_intercept_errors off;
+        fastcgi_buffer_size 16k;
+        fastcgi_buffers 4 16k;
+        fastcgi_connect_timeout 300;
+        fastcgi_send_timeout 300;
+        fastcgi_read_timeout 300;
+        #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        #include fastcgi_params;
+        #fastcgi_intercept_errors on;
+        #fastcgi_pass ${FPM_HOST};
+        #fastcgi_param SCRIPT_FILENAME $document_root/$fastcgi_script_name;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}

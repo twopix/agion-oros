@@ -1,0 +1,50 @@
+{{- $fpm_host := printf "%s-fpm.%s.svc.cluster.local:%d" .Values.app .Release.Namespace ((index .Values.fpm.service 0).port | int ) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app }}-web
+  labels:
+    app: {{ .Values.app }}-web
+    type: {{ .Values.app }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app }}-web
+      type: {{ .Values.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app }}-web
+        type: {{ .Values.app }}
+      annotations:
+        app: {{ .Values.app }}-fpm
+    spec: 
+      volumes:
+        - name: web-config-volume
+          configMap:
+            name: {{ .Values.app }}-web-files
+            items:
+            - key: nginx.conf.template
+              path: nginx.conf.template
+      containers:
+      - name: {{ .Values.app }}-web
+        image: {{ .Values.web.image }}
+        imagePullPolicy: {{ .Values.web.imagePullPolicy }}
+        ports:
+          {{- range .Values.web.service }}
+          - name: {{ .name }}
+            containerPort: {{ .targetPort }}         
+          {{- end }}
+        resources:
+            {{- .Values.web.resources | toYaml | nindent 12 }}                               
+        env:
+          - name: FPM_HOST
+            value: {{ $fpm_host }}
+          - name: TIMESTAMP
+            value: "{{ now | date "20060102150405" }}"   
+        volumeMounts:        
+        - name: web-config-volume
+          mountPath: /etc/nginx/templates/default.conf.template
+          subPath: nginx.conf.template        

@@ -10,13 +10,15 @@
 </head>
 <body class="is-preload">
     <div id="wrapper">
-        @include('includes.menus')
+        
 
         @include('includes.banner')
 
         <div id="main">
             @yield('content')
         </div>
+
+        @include('includes.menus')
         
         @include('includes.contact')
 

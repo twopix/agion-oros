@@ -1,4 +1,4 @@
-{{-- {{ dump($menus) }} --}}
+{{ dd($menus) }}
 
 <div id="sidebar_menu">
     <div class="inner">

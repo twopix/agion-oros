@@ -40,6 +40,11 @@ class Menu extends Model
         return $this->hasMany(Menu::class, 'parent_id');
     }
 
+    public function scopeActive($query) 
+    {
+        return $query->where('activated', 'f');
+    }
+
     public function name()
     {
         return $this->{'name'};
@@ -64,7 +69,7 @@ class Menu extends Model
             $item->name = $item->name();
             $item->link = $item->link();
             $item->icon = $item->icon();
-            $item->children = self::getMenu($item->menu_id);
+            $item->children = self::getMenu($item->id);
 
             $result->push($item);
         }

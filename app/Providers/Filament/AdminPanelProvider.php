@@ -23,12 +23,7 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        $translations = config('filament-translations.locals');
-        $locals = [];
-        foreach ($translations as $key => $value) {
-            $locals[] = $key;
-        }
-        unset($translations);
+        $locals = getLocales();
 
         return $panel
             ->default()

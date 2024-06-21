@@ -12,13 +12,7 @@ class TypesPlugin extends FilamentTypesPlugin
 {
     public function register(Panel $panel): void
     {
-
-        $translations = config('filament-translations.locals');
-        $locals = [];
-        foreach ($translations as $key => $value) {
-            $locals[] = $key;
-        }
-        unset($translations);
+        $locals = getLocales();
 
         $panel
             ->plugin(

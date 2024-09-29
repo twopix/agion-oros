@@ -2,11 +2,10 @@
 <section id="banner" class="major">
     <div class="inner">
         <header class="major">
-            <h1>it's a banner</h1>
+            <h1>Mount Athos</h1>
         </header>
         <div class="content">
-            <p>A responsive site template designed by HTML5 UP<br />
-            and released under the Creative Commons.</p>
+            <p>Welcome to Friends of Mount Athos! <br>A non-profit company. </p>
             <ul class="actions">
                 <li><a href="#one" class="button next scrolly">Get Started</a></li>
             </ul>

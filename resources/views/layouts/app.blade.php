@@ -10,7 +10,8 @@
 </head>
 <body class="is-preload">
     <div id="wrapper">
-        
+  
+        @include('includes.header')
 
         @include('includes.banner')
 
